@@ -1,0 +1,9 @@
+streamlit
+Pillow
+numpy
+tensorflow
+scikit-learn
+tqdm
+pickle
+tk
+pandas
