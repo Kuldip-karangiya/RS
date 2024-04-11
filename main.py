@@ -1,5 +1,4 @@
 import streamlit as st
-
 import os
 import shutil
 from PIL import Image
@@ -11,13 +10,7 @@ import tensorflow
 import pickle
 from numpy.linalg import norm
 from sklearn.neighbors import NearestNeighbors
-
-# Mukund edited
-import tkinter as tk
-from tkinter import filedialog
-import pandas as pd
 import tqdm
-
 
 st.title('Recommender System')
 
@@ -54,41 +47,39 @@ def train_model():
     pickle.dump(feature_list, open('embeddings.pkl', 'wb'))
     pickle.dump(filenames, open('filename.pkl', 'wb'))
 
-root = tk.Tk()
-root.withdraw()
-root.wm_attributes('-topmost', 1)
-st.write('Please select a folder to train new model:')
-clicked = st.button('Browse Folder')
-
-folder_path = ""
-errors = []
-
-if clicked:
-    dirname = str(filedialog.askdirectory(master=root))
-    folder_path = dirname
-    st.write(f"Selected folder: {folder_path}")
-    if not dirname:  # Check if no folder was selected
-        st.warning("No folder selected. Please select a folder.")
+flagvar = 0
+def select_folder():
+    global flagvar
+    uploaded_folder = st.text_input('Enter folder path:')
+    if os.path.exists(uploaded_folder):
+        flagvar = 1
+        return uploaded_folder
     else:
-        destination_folder = "FolderUploads" # Folder name where to upload images
-        shutil.rmtree(destination_folder, ignore_errors=True) # Truncate folder before uploading files
+        st.warning("Please enter a valid folder path.")
+        return None
 
-        if not os.path.exists(destination_folder):
-            os.makedirs(destination_folder)
-        images_reports = [file for file in os.listdir(dirname) if os.path.splitext(file)[1].lower() in ['.jpg', '.jpeg', '.png', '.gif']]
-        # Copy files to the 'images' folder with error handling
-        for file in images_reports:
-            try:
-                shutil.copy(os.path.join(dirname, file), destination_folder)
-            except Exception as e:
-                errors.append(f"Error copying file '{file}': {str(e)}")
-        
-        if not errors:
-            with st.spinner("Please be patient while we train the model..."):
-                train_model()
-            st.success("Model trained successfully ✅")
-        else:
-            st.error("Error while copying files..! Please try again.")
+st.write('Please select a folder to train new model:')
+folder_path = select_folder()
+
+if folder_path is not None:
+    st.write(f"Selected folder: {folder_path}")
+    destination_folder = "FolderUploads" # Folder name where to upload images
+    shutil.rmtree(destination_folder, ignore_errors=True) # Truncate folder before uploading files
+
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
+
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            if os.path.splitext(file)[1].lower() in ['.jpg', '.jpeg', '.png', '.gif']:
+                try:
+                    shutil.copy(os.path.join(root, file), destination_folder)
+                except Exception as e:
+                    st.error(f"Error copying file '{file}': {str(e)}")
+    if flagvar != 1:
+        with st.spinner("Please be patient while we train the model..."):
+            train_model()
+    st.success("Model trained successfully ✅")
 
 # Load pre-trained model and features if FolderUploads directory exists
 if os.path.exists("FolderUploads"):
@@ -107,7 +98,6 @@ if os.path.exists("FolderUploads"):
         model,
         GlobalMaxPooling2D()
     ])
-
 
 def save_uploaded_file(uploaded_file):
     try:
