@@ -1,9 +1,5 @@
-streamlit
-Pillow
+streamlit==1.33.0
 numpy
 tensorflow
-scikit-learn
-tqdm
-pickle
-tk
-pandas
+scikit-learn==1.4.2
+tqdm==4.66.2
