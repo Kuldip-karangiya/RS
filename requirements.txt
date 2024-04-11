@@ -3,3 +3,4 @@ numpy
 tensorflow
 scikit-learn==1.4.2
 tqdm==4.66.2
+tk
